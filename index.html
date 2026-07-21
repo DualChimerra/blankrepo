@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LoRA Steps Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="titlebar">
+    <div class="titlebar-inner">
+      <div class="app-title">
+        <span class="logo">Σ</span>
+        <div>
+          <h1>LoRA Steps Calculator</h1>
+          <p>шаги · просмотры · пропорции датасета</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="proportion-banner" class="banner hidden">
+      <div class="banner-row">
+        <div class="banner-info">
+          <span class="banner-tag">Режим пропорции</span>
+          <span id="banner-name" class="banner-name"></span>
+          <span id="banner-target" class="banner-target"></span>
+        </div>
+        <div class="banner-controls">
+          <label class="mode-label">держать:
+            <select id="target-mode">
+              <option value="steps">шаги</option>
+              <option value="vpi">проходы/картинку</option>
+              <option value="balance" selected>баланс</option>
+            </select>
+          </label>
+          <button id="exit-proportion" class="btn ghost small">Выйти</button>
+        </div>
+      </div>
+      <div id="banner-deviation" class="banner-deviation"></div>
+    </section>
+
+    <div class="columns">
+      <section class="panel">
+        <h2>Параметры</h2>
+        <div id="params"></div>
+        <div class="panel-actions">
+          <button id="save-preset" class="btn primary">Сохранить пропорцию</button>
+          <button id="copy-summary" class="btn ghost">Копировать сводку</button>
+        </div>
+        <p class="hint">🔒 — параметр не будет меняться при автоподборе. Количество картинок подбор никогда не трогает — его меняете только вы.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Результаты</h2>
+        <div class="results-grid">
+          <div class="result-card big">
+            <span class="result-label">Всего шагов</span>
+            <span class="result-value" id="r-steps">—</span>
+            <span class="badge" id="b-steps"></span>
+          </div>
+          <div class="result-card big">
+            <span class="result-label">Всего просмотров</span>
+            <span class="result-value" id="r-views">—</span>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Проходов на картинку</span>
+            <span class="result-value" id="r-vpi">—</span>
+            <span class="badge" id="b-vpi"></span>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Эффективный батч</span>
+            <span class="result-value" id="r-effbatch">—</span>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Шагов в эпоху</span>
+            <span class="result-value" id="r-steps-epoch">—</span>
+          </div>
+          <div class="result-card">
+            <span class="result-label">Просмотров в эпоху</span>
+            <span class="result-value" id="r-views-epoch">—</span>
+          </div>
+        </div>
+        <p class="hint">Ориентиры: персонаж ~1000–2500 шагов и ~100 проходов на картинку; стиль обычно дольше. Лучшая эпоха почти никогда не последняя — сохраняйте каждую.</p>
+      </section>
+    </div>
+
+    <section class="panel presets-panel">
+      <h2>Сохранённые пропорции</h2>
+      <div id="presets-empty" class="empty-state">Пока пусто. Настройте параметры и нажмите «Сохранить пропорцию».</div>
+      <div id="presets"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>

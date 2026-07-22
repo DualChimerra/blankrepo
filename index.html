@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
   <header class="titlebar">
     <div class="titlebar-inner">
       <div class="app-title">
@@ -28,13 +30,12 @@
           <span id="banner-target" class="banner-target"></span>
         </div>
         <div class="banner-controls">
-          <label class="mode-label">держать:
-            <select id="target-mode">
-              <option value="steps">шаги</option>
-              <option value="vpi">проходы/картинку</option>
-              <option value="balance" selected>баланс</option>
-            </select>
-          </label>
+          <span class="mode-label">держать:</span>
+          <div class="segmented" id="target-mode">
+            <button type="button" data-mode="steps">шаги</button>
+            <button type="button" data-mode="vpi">проходы</button>
+            <button type="button" data-mode="balance">баланс</button>
+          </div>
           <button id="exit-proportion" class="btn ghost small">Выйти</button>
         </div>
       </div>
@@ -55,39 +56,42 @@
       <section class="panel">
         <h2>Результаты</h2>
         <div class="results-grid">
-          <div class="result-card big">
+          <div class="result-card hero">
             <span class="result-label">Всего шагов</span>
             <span class="result-value" id="r-steps">—</span>
             <span class="badge" id="b-steps"></span>
           </div>
-          <div class="result-card big">
+          <div class="result-card half">
             <span class="result-label">Всего просмотров</span>
             <span class="result-value" id="r-views">—</span>
           </div>
-          <div class="result-card">
+          <div class="result-card half">
             <span class="result-label">Проходов на картинку</span>
             <span class="result-value" id="r-vpi">—</span>
             <span class="badge" id="b-vpi"></span>
           </div>
-          <div class="result-card">
-            <span class="result-label">Эффективный батч</span>
+          <div class="result-card mini">
+            <span class="result-label">Эфф. батч</span>
             <span class="result-value" id="r-effbatch">—</span>
           </div>
-          <div class="result-card">
-            <span class="result-label">Шагов в эпоху</span>
+          <div class="result-card mini">
+            <span class="result-label">Шагов / эпоху</span>
             <span class="result-value" id="r-steps-epoch">—</span>
           </div>
-          <div class="result-card">
-            <span class="result-label">Просмотров в эпоху</span>
+          <div class="result-card mini">
+            <span class="result-label">Просмотров / эпоху</span>
             <span class="result-value" id="r-views-epoch">—</span>
           </div>
-          <div class="result-card">
-            <span class="result-label">Рекомендуемый LR</span>
-            <span class="result-value text" id="r-lr">—</span>
-          </div>
-          <div class="result-card">
-            <span class="result-label">Чекпоинтов на выбор</span>
-            <span class="result-value text" id="r-saves">—</span>
+          <div class="result-card advice">
+            <div class="advice-item">
+              <span class="result-label">Рекомендуемый LR</span>
+              <span class="result-value text" id="r-lr">—</span>
+            </div>
+            <div class="advice-sep"></div>
+            <div class="advice-item">
+              <span class="result-label">Чекпоинтов на выбор</span>
+              <span class="result-value text" id="r-saves">—</span>
+            </div>
           </div>
         </div>
         <p class="hint">Ориентиры Krea 2 (стиль): 1500–3000 шагов, датасет 20–40 картинок 1024+, rank/alpha 32, LR согласован с шагами (1e-4 ↔ 2000–3000). Сохраняйте чекпоинты каждые 250–500 шагов и сравнивайте — угадать правильную точку заранее нельзя. Хорошая стилевая LoRA работает на весе 0.8–1.0.</p>
@@ -100,6 +104,18 @@
       <div id="presets"></div>
     </section>
   </main>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>Сохранить пропорцию</h3>
+      <p class="modal-sub" id="modal-summary"></p>
+      <input id="preset-name-input" type="text" spellcheck="false" placeholder="Название пропорции" />
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn ghost">Отмена</button>
+        <button id="modal-save" class="btn primary">Сохранить</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
   <script src="renderer.js"></script>

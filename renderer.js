@@ -46,19 +46,38 @@ function derive(p) {
 
 function fmt(n) { return n.toLocaleString('ru-RU'); }
 
+/* Ориентиры для стилевой LoRA на Krea 2:
+   500–1000 — быстрая проверка, 1500–3000 — стандарт,
+   3000–4000 — сложный стиль (с пониженным LR), дальше — пережарка */
 function stepsBadge(steps) {
   if (steps < 500) return ['bad', 'очень мало'];
-  if (steps < 900) return ['warn', 'маловато'];
-  if (steps <= 3500) return ['ok', 'норма'];
-  if (steps <= 6000) return ['warn', 'много (ок для стиля)'];
+  if (steps < 1500) return ['warn', 'быстрая проверка стиля'];
+  if (steps <= 3000) return ['ok', 'стандарт для стиля'];
+  if (steps <= 4000) return ['warn', 'сложный стиль — снизьте LR'];
   return ['bad', 'риск пережарки'];
 }
+// 1500–3000 шагов на датасете 20–40 картинок при батче 1 → ~40–150 проходов на картинку
 function vpiBadge(vpi) {
-  if (vpi < 25) return ['bad', 'мало'];
-  if (vpi < 60) return ['warn', 'маловато'];
-  if (vpi <= 170) return ['ok', '~норма (ориентир 100)'];
-  if (vpi <= 320) return ['warn', 'много'];
+  if (vpi < 20) return ['bad', 'мало'];
+  if (vpi < 40) return ['warn', 'маловато'];
+  if (vpi <= 150) return ['ok', 'норма (ориентир ~75)'];
+  if (vpi <= 250) return ['warn', 'много'];
   return ['bad', 'риск пережарки'];
+}
+/* 3–10 — техминимум (риск выучить композицию вместо стиля),
+   20–40 — золотая середина, 50–100+ — для сложного стиля */
+function imagesBadge(n) {
+  if (n < 3) return ['bad', 'ниже минимума (3)'];
+  if (n < 20) return ['warn', 'риск выучить композицию'];
+  if (n <= 40) return ['ok', 'золотая середина'];
+  return ['warn', 'сложный стиль — дольше'];
+}
+// LR согласован с числом шагов: высокий LR → мало шагов, низкий → много
+function lrHint(steps) {
+  if (steps <= 1000) return '3e-4…7e-4 (облако)';
+  if (steps < 2000) return '1e-4…3e-4';
+  if (steps <= 4000) return '1e-4 (локально)';
+  return '<1e-4 + ранние чекпоинты';
 }
 
 /* ---------- UI: параметры ---------- */
@@ -73,6 +92,9 @@ for (const def of PARAM_DEFS) {
   const info = document.createElement('div');
   info.className = 'param-info';
   info.innerHTML = `<div class="param-name">${def.name}</div><div class="param-sub">${def.sub}</div>`;
+  if (def.key === 'images') {
+    info.innerHTML += '<span class="badge" id="b-images"></span>';
+  }
 
   const stepper = document.createElement('div');
   stepper.className = 'stepper';
@@ -251,8 +273,13 @@ function render() {
   setText('r-effbatch', `${d.effBatch}  (${params.batch}×${params.accum})`);
   setText('r-steps-epoch', fmt(d.stepsPerEpoch));
   setText('r-views-epoch', fmt(d.viewsPerEpoch));
+  setText('r-lr', lrHint(d.totalSteps));
+  setText('r-saves', d.totalSteps >= 500
+    ? `${Math.floor(d.totalSteps / 500)} (каждые 500 шагов)`
+    : 'каждые 250 шагов');
   setBadge('b-steps', stepsBadge(d.totalSteps));
   setBadge('b-vpi', vpiBadge(d.viewsPerImage));
+  setBadge('b-images', imagesBadge(params.images));
   renderBanner();
   renderPresets();
 }

@@ -304,11 +304,20 @@ function renderBanner() {
   const t = activePreset.target;
   document.getElementById('banner-target').textContent =
     `цель: ${fmt(t.totalSteps)} шагов · ${fmt(t.viewsPerImage)} проходов/картинку · эфф. батч ${t.effBatch}`;
-  document.getElementById('target-mode').value = targetMode;
+  syncTargetMode();
 }
 
-document.getElementById('target-mode').addEventListener('change', (e) => {
-  targetMode = e.target.value;
+const targetModeEl = document.getElementById('target-mode');
+function syncTargetMode() {
+  for (const b of targetModeEl.querySelectorAll('button')) {
+    b.classList.toggle('active', b.dataset.mode === targetMode);
+  }
+}
+targetModeEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-mode]');
+  if (!btn) return;
+  targetMode = btn.dataset.mode;
+  syncTargetMode();
   persist();
 });
 
@@ -319,12 +328,40 @@ document.getElementById('exit-proportion').addEventListener('click', () => {
   persist();
 });
 
+/* ---------- модал имени пропорции (window.prompt в Electron не работает) ---------- */
+
+const modalOverlay = document.getElementById('modal-overlay');
+const presetNameInput = document.getElementById('preset-name-input');
+let modalResolve = null;
+
+function askPresetName(defaultName, summary) {
+  return new Promise((resolve) => {
+    modalResolve = resolve;
+    document.getElementById('modal-summary').textContent = summary;
+    presetNameInput.value = defaultName;
+    modalOverlay.classList.remove('hidden');
+    requestAnimationFrame(() => { presetNameInput.focus(); presetNameInput.select(); });
+  });
+}
+function closeModal(result) {
+  modalOverlay.classList.add('hidden');
+  if (modalResolve) { modalResolve(result); modalResolve = null; }
+}
+document.getElementById('modal-save').addEventListener('click', () => closeModal(presetNameInput.value));
+document.getElementById('modal-cancel').addEventListener('click', () => closeModal(null));
+modalOverlay.addEventListener('mousedown', (e) => { if (e.target === modalOverlay) closeModal(null); });
+presetNameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') closeModal(presetNameInput.value);
+  if (e.key === 'Escape') closeModal(null);
+});
+
 /* ---------- пресеты ---------- */
 
-document.getElementById('save-preset').addEventListener('click', () => {
+document.getElementById('save-preset').addEventListener('click', async () => {
   const d = derive(params);
-  const name = prompt('Название пропорции:',
-    `${fmt(d.totalSteps)} шагов · ${d.viewsPerImage}/картинку`);
+  const name = await askPresetName(
+    `${fmt(d.totalSteps)} шагов · ${d.viewsPerImage}/картинку`,
+    `${params.images} карт. × ${params.repeats} repeats × ${params.epochs} эпох · батч ${params.batch}×${params.accum}`);
   if (name === null) return;
   presets.unshift({
     id: Date.now(),
